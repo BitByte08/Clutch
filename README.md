@@ -1,47 +1,190 @@
-# OpenNext Starter
+# ⚔️ LoL Team Builder
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+리그 오브 레전드 플레이어 실력을 수치화하고 최적의 팀 구성을 자동으로 생성하는 웹 애플리케이션입니다.
 
-## Getting Started
+## 🎮 기능
 
-Read the documentation at https://opennext.js.org/cloudflare.
+- **플레이어 검색**: Riot API를 통해 플레이어 정보 조회
+- **실력 수치화**: 티어, 랭크, LP를 기반으로 0-100 레이팅 점수 계산
+- **팀 구성**: 2v2, 3v3, 4v4, 5v5 등 다양한 사이즈의 팀 생성
+- **밸런싱**: 최적화 알고리즘을 통한 균형잡힌 팀 구성
+- **로컬 저장**: 브라우저 로컬스토리지를 통한 임시 데이터 저장
 
-## Develop
+## 🚀 시작하기
 
-Run the Next.js development server:
+### 필수 요구사항
+
+- Node.js 18.17 이상
+- Riot API 키 (https://developer.riotgames.com)
+
+### 설치
+
+```bash
+npm install
+```
+
+### 환경 변수 설정
+
+`.env.local` 파일을 생성하고 Riot API 키를 입력하세요:
+
+```env
+RIOT_API_KEY=your_api_key_here
+```
+
+**⚠️ 주의:** `RIOT_API_KEY`는 서버 환경 변수로, 클라이언트에 노출되지 않습니다. 모든 API 호출은 Next.js API 라우트를 통해 처리됩니다.
+
+### 개발 서버 실행
 
 ```bash
 npm run dev
-# or similar package manager command
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+브라우저에서 [http://localhost:3000](http://localhost:3000) 을 열어 확인하세요.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📐 레이팅 계산 방식
 
-## Preview
+플레이어의 레이팅은 다음 요소를 기반으로 계산됩니다:
 
-Preview the application locally on the Cloudflare runtime:
+- **티어**: IRON(100) ~ CHALLENGER(1000)
+- **랭크**: I(40) > II(30) > III(20) > IV(10)
+- **LP**: 0-100
 
-```bash
-npm run preview
-# or similar package manager command
+최종 레이팅은 0-100 범위로 정규화되어 팀 밸런싱에 사용됩니다.
+
+## 🤖 팀 구성 알고리즘
+
+최적의 팀 구성을 위해 다음 방식을 사용합니다:
+
+1. 플레이어를 레이팅 순으로 정렬
+2. 뱀 드래프트(Snake Draft) 방식으로 팀 배정
+3. 100회 반복하여 최적의 밸런스 점수를 찾음
+
+## 📁 프로젝트 구조
+
+```
+src/
+├── app/
+│   ├── api/                      # Next.js API 라우트
+│   │   └── riot/
+│   │       ├── player/
+│   │       │   └── search/      # POST /api/riot/player/search
+│   │       ├── matches/
+│   │       │   ├── recent/      # POST /api/riot/matches/recent
+│   │       │   └── details/     # POST /api/riot/matches/details
+│   │       └── stats/
+│   │           └── analyze/     # POST /api/riot/stats/analyze
+│   ├── page.tsx                 # 메인 페이지
+│   ├── layout.tsx
+│   └── globals.css
+├── components/                   # React 컴포넌트
+│   ├── PlayerSearch.tsx         # 플레이어 검색 UI
+│   └── TeamBuilder.tsx          # 팀 구성 UI
+├── lib/                         # 유틸리티 함수
+│   ├── riotApi.ts              # Riot API 클라이언트 (API 라우트 호출)
+│   ├── teamBuilder.ts          # 팀 구성 알고리즘
+│   └── storage.ts              # 로컬스토리지 관리
+└── types/                       # TypeScript 타입 정의
+    └── index.ts
 ```
 
-## Deploy
+## 🔐 API 라우트 설명
 
-Deploy the application to Cloudflare:
+### 1. `POST /api/riot/player/search`
+플레이어 정보 및 랭크 데이터 조회
 
-```bash
-npm run deploy
-# or similar package manager command
+**요청:**
+```json
+{
+  "summonerName": "Faker",
+  "tagLine": "KR1",
+  "region": "kr"
+}
 ```
 
-## Learn More
+**응답:**
+```json
+{
+  "id": "puuid...",
+  "name": "Faker",
+  "tag": "KR1",
+  "tier": "DIAMOND",
+  "rank": 1,
+  "lp": 100,
+  "rating": 85.5,
+  "region": "KR",
+  "profileIconId": 123
+}
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 2. `POST /api/riot/matches/recent`
+최근 매치 ID 조회
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**요청:**
+```json
+{
+  "puuid": "player_puuid",
+  "count": 5
+}
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**응답:**
+```json
+[
+  "match_id_1",
+  "match_id_2",
+  ...
+]
+```
+
+### 3. `POST /api/riot/matches/details`
+매치 상세 정보 조회
+
+**요청:**
+```json
+{
+  "matchId": "kr_2024_123456789"
+}
+```
+
+### 4. `POST /api/riot/stats/analyze`
+게임 성과 분석
+
+**요청:**
+```json
+{
+  "matchData": { /* 매치 상세 데이터 */ },
+  "playerPuuid": "player_puuid",
+  "playerTier": "DIAMOND"
+}
+```
+
+**응답:**
+```json
+{
+  "matchId": "kr_2024_123456789",
+  "position": "MID",
+  "kills": 10,
+  "deaths": 2,
+  "assists": 15,
+  "cs": 320,
+  "gold": 12000,
+  "damageDealt": 15000,
+  "damageTaken": 8000,
+  "objectives": 3,
+  "win": true,
+  "enemyTeamTier": "GOLD",
+  "gameTimestamp": 1704067200000,
+  "performanceScore": 87.5
+}
+```
+
+## 🔜 향후 계획
+
+- 토너먼트 구성 및 관리 기능
+- Cloudflare D1 또는 KV를 이용한 영구 데이터 저장
+- 플레이어 통계 및 전적 조회
+- 팀 프리셋 및 저장 기능
+
+## 📝 라이선스
+
+MIT
