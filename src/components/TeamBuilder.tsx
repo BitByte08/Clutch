@@ -3,21 +3,15 @@
 import { useState } from "react";
 import { loadPlayers } from "@/lib/storage";
 import { findOptimalTeams } from "@/lib/teamBuilder";
-import { Team, Player } from "@/types";
+import { Team } from "@/types";
 
 export default function TeamBuilder() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamSize, setTeamSize] = useState<2 | 3 | 4 | 5>(5);
   const [numberOfTeams, setNumberOfTeams] = useState(2);
   const [error, setError] = useState("");
-  const [players, setPlayers] = useState<Player[]>([]);
-
-  const reloadPlayers = () => {
-    setPlayers(loadPlayers());
-  };
 
   const handleBuildTeams = () => {
-    reloadPlayers();
     const currentPlayers = loadPlayers();
 
     if (currentPlayers.length < teamSize * numberOfTeams) {
@@ -56,7 +50,7 @@ export default function TeamBuilder() {
             </label>
             <select
               value={teamSize}
-              onChange={(e) => setTeamSize(parseInt(e.target.value) as any)}
+              onChange={(e) => setTeamSize(parseInt(e.target.value) as 2 | 3 | 4 | 5)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
             >
               <option value="2">2v2</option>
@@ -103,7 +97,7 @@ export default function TeamBuilder() {
           <h2 className="text-2xl font-bold mb-6 text-gray-900">생성된 팀</h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {teams.map((team, index) => (
+            {teams.map((team) => (
               <div
                 key={team.id}
                 className="border-2 border-gray-400 rounded-lg p-4 bg-gray-50"

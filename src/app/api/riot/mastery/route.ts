@@ -12,22 +12,23 @@ async function getChampionData(): Promise<Record<string, string>> {
   
   // 캐시가 유효하면 반환
   if (championDataCache && now - championDataLastFetch < CACHE_DURATION) {
-    return championDataCache;
+    return championDataCache;   
   }
 
   try {
     // Data Dragon에서 최신 챔피언 데이터 가져오기
     const versionResponse = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
-    const versions = await versionResponse.json();
+    const versions = await versionResponse.json() as string[];
     const latestVersion = versions[0];
 
     const championResponse = await fetch(
       `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/ko_KR/champion.json`
     );
-    const championData = await championResponse.json();
+    const championData = await championResponse.json() as { data: Record<string, { key: string; name: string }> };
 
     // championId를 key로 하는 맵 생성
     const idToName: Record<string, string> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Object.values(championData.data).forEach((champ: any) => {
       idToName[champ.key] = champ.name;
     });
@@ -45,7 +46,7 @@ async function getChampionData(): Promise<Record<string, string>> {
 
 export async function POST(request: NextRequest) {
   try {
-    const { puuid, region } = await request.json();
+    const { puuid, region } = await request.json() as { puuid: string; region: string };
 
     if (!puuid || !region) {
       return NextResponse.json(
@@ -77,13 +78,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const masteries = await response.json();
+    const masteries = await response.json() as Array<{
+      championId: number;
+      championLevel: number;
+      championPoints: number;
+    }>;
 
     // 챔피언 데이터 가져오기
     const championNames = await getChampionData();
 
     // 챔피언 이름 추가
-    const masteriesWithNames = masteries.map((m: any) => ({
+    const masteriesWithNames = masteries.map((m) => ({
       championId: m.championId,
       championName: championNames[m.championId.toString()] || `Champion ${m.championId}`,
       championLevel: m.championLevel,

@@ -140,7 +140,6 @@ export async function POST(request: NextRequest) {
     ];
 
     let summonerData: RiotSummonerData | null = null;
-    let incompleteSummoner: RiotSummonerData | null = null;
     let resolvedPlatform = platformRegion;
 
     for (const platform of platformCandidates) {
@@ -223,11 +222,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (!summonerData || !summonerData.puuid) {
-      console.error("Summoner data missing after all fallbacks", incompleteSummoner);
+      console.error("Summoner data missing after all fallbacks");
       return NextResponse.json(
         {
           error: "Summoner data unavailable (puuid missing)",
-          detail: incompleteSummoner || "No summoner record returned by Riot",
+          detail: "No summoner record returned by Riot",
         },
         { status: 404 }
       );
@@ -323,6 +322,7 @@ export async function POST(request: NextRequest) {
       rank: parseInt(rank) || 4,
       lp: lp,
       rating: rating,
+      adjustedRating: rating, // 언랭도 초기 adjustedRating 설정
       isUnranked: isUnranked,
       region: region.toUpperCase(),
       profileIconId: effectiveProfileIconId,

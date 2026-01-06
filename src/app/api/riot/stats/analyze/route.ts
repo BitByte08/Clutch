@@ -1,29 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GamePerformance } from "@/types";
 
-const tierPoints = {
-  IRON: 1,
-  BRONZE: 1.2,
-  SILVER: 1.4,
-  GOLD: 1.6,
-  PLATINUM: 1.8,
-  EMERALD: 1.95,
-  DIAMOND: 2.1,
-  MASTER: 2.25,
-  GRANDMASTER: 2.4,
-  CHALLENGER: 2.5,
-};
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const positionScoring: Record<string, Record<string, (stats: any, enemyLaner: any, gameDuration?: number) => number>> = {
   TOP: {
-    csScore: (stats, enemy, gameDuration) => {
+    csScore: (stats, _enemy, gameDuration) => {
       const cs = stats.totalMinionsKilled || stats.minionsKilled || 0;
       const gameMinutes = gameDuration ? gameDuration / 60 : 30;
       const csPerMin = cs / gameMinutes;
       // 10+ CS/min = 100점, 8 CS/min = 80점, 6 CS/min = 60점, 4 CS/min = 40점
       return Math.min(100, Math.max(0, csPerMin * 10));
     },
-    kdaScore: (stats, enemy) => {
+    kdaScore: (stats, _enemy) => {
       const kda = (stats.kills + stats.assists) / Math.max(1, stats.deaths);
       return Math.min(100, kda * 20);
     },
@@ -41,18 +29,18 @@ const positionScoring: Record<string, Record<string, (stats: any, enemyLaner: an
     },
   },
   JUNGLE: {
-    csScore: (stats, enemy, gameDuration) => {
+    csScore: (stats, _enemy, gameDuration) => {
       const cs = (stats.totalMinionsKilled || stats.minionsKilled || 0) + (stats.neutralMinionsKilled || 0);
       const gameMinutes = gameDuration ? gameDuration / 60 : 30;
       const csPerMin = cs / gameMinutes;
       // 정글은 라인보다 낙은 기준: 7+ CS/min = 100점, 5.5 CS/min = 80점, 4 CS/min = 60점
       return Math.min(100, Math.max(0, csPerMin * 14.28));
     },
-    kdaScore: (stats, enemy) => {
+    kdaScore: (stats, _enemy) => {
       const kda = (stats.kills + stats.assists) / Math.max(1, stats.deaths);
       return Math.min(100, kda * 20);
     },
-    objectiveScore: (stats, enemy) => {
+    objectiveScore: (stats, _enemy) => {
       const objectives =
         (stats.baronKills || 0) * 2 +
         (stats.dragonKills || 0) * 2 +
@@ -67,7 +55,7 @@ const positionScoring: Record<string, Record<string, (stats: any, enemyLaner: an
     },
   },
   MID: {
-    csScore: (stats, enemy, gameDuration) => {
+    csScore: (stats, _enemy, gameDuration) => {
       const cs = stats.totalMinionsKilled || stats.minionsKilled || 0;
       const gameMinutes = gameDuration ? gameDuration / 60 : 30;
       const csPerMin = cs / gameMinutes;
@@ -91,7 +79,7 @@ const positionScoring: Record<string, Record<string, (stats: any, enemyLaner: an
     },
   },
   ADC: {
-    csScore: (stats, enemy, gameDuration) => {
+    csScore: (stats, _enemy, gameDuration) => {
       const cs = stats.totalMinionsKilled || stats.minionsKilled || 0;
       const gameMinutes = gameDuration ? gameDuration / 60 : 30;
       const csPerMin = cs / gameMinutes;
@@ -115,25 +103,25 @@ const positionScoring: Record<string, Record<string, (stats: any, enemyLaner: an
     },
   },
   SUPPORT: {
-    wardScore: (stats, enemy) => {
+    wardScore: (stats, _enemy) => {
       const wards = stats.wardsPlaced || stats.sightWardsBoughtInGame || 0;
-      const enemyWards = enemy ? (enemy.wardsPlaced || enemy.sightWardsBoughtInGame || 1) : wards * 0.9;
+      const enemyWards = _enemy ? (_enemy.wardsPlaced || _enemy.sightWardsBoughtInGame || 1) : wards * 0.9;
       const ratio = wards / Math.max(1, enemyWards);
       return Math.min(100, ratio * 50);
     },
-    kdaScore: (stats, enemy) => {
+    kdaScore: (stats, _enemy) => {
       const kda = (stats.kills + stats.assists * 1.5) / Math.max(1, stats.deaths);
       return Math.min(100, kda * 20);
     },
-    visionScore: (stats, enemy) => {
+    visionScore: (stats, _enemy) => {
       const vision = stats.visionScore || 0;
-      const enemyVision = enemy ? (enemy.visionScore || 1) : vision * 0.9;
+      const enemyVision = _enemy ? (_enemy.visionScore || 1) : vision * 0.9;
       const ratio = vision / Math.max(1, enemyVision);
       return Math.min(100, ratio * 50);
     },
-    damageScore: (stats, enemy) => {
+    damageScore: (stats, _enemy) => {
       const damage = stats.totalDamageDealtToChampions || stats.totalDamageDealtToChamps || 0;
-      const enemyDamage = enemy ? (enemy.totalDamageDealtToChampions || enemy.totalDamageDealtToChamps || 1) : damage * 0.9;
+      const enemyDamage = _enemy ? (_enemy.totalDamageDealtToChampions || _enemy.totalDamageDealtToChamps || 1) : damage * 0.9;
       const ratio = damage / Math.max(1, enemyDamage);
       return Math.min(100, ratio * 50);
     },
@@ -150,9 +138,11 @@ const positionAliases: Record<string, string> = {
 };
 
 function calculateGamePerformance(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   participant: any,
   matchId: string,
   win: boolean,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   enemyLaner: any,
   playerTier: string,
   gameTimestamp: number,
@@ -232,6 +222,10 @@ function calculateGamePerformance(
       details: Object.fromEntries(
         Object.entries(scoreDetails).map(([k, v]) => [k, Math.round(v * 10) / 10])
       ),
+      supportStats: {
+        wards: participant.wardsPlaced || participant.sightWardsBoughtInGame || 0,
+        vision: participant.visionScore || 0,
+      },
       enemyStats: enemyLaner ? {
         cs: enemyCs,
         gold: enemyGold,
@@ -248,7 +242,9 @@ function calculateGamePerformance(
 
 export async function POST(request: NextRequest) {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const body = (await request.json()) as {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       matchData: any;
       playerPuuid: string;
       playerTier: string;
@@ -263,6 +259,7 @@ export async function POST(request: NextRequest) {
     }
 
     const playerParticipant = matchData.info.participants.find(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (p: any) => p.puuid === playerPuuid
     );
 
@@ -275,6 +272,7 @@ export async function POST(request: NextRequest) {
 
     const playerTeamId = playerParticipant.teamId;
     const enemyTeam = matchData.info.participants.filter(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (p: any) => p.teamId !== playerTeamId
     );
 
@@ -290,6 +288,7 @@ export async function POST(request: NextRequest) {
     playerPosition = positionAliases[playerPosition] || playerPosition;
     
     const enemyLaner = enemyTeam.find(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (p: any) => {
         let enemyPos = p.teamPosition || p.individualPosition;
         enemyPos = positionAliases[enemyPos] || enemyPos;

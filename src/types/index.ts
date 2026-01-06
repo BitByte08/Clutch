@@ -43,6 +43,10 @@ export interface GamePerformance {
     tierBonus: number;
     final: number;
     details: Record<string, number>;
+    supportStats?: {
+      wards?: number;
+      vision?: number;
+    };
     enemyStats?: {
       cs: number;
       gold: number;

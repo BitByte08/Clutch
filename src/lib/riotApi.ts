@@ -1,4 +1,4 @@
-import { Player, RiotLeagueData, GamePerformance } from "@/types";
+import { Player, GamePerformance } from "@/types";
 
 // 플레이어 검색
 export async function searchPlayer(
@@ -61,6 +61,7 @@ export async function getRecentMatchIds(
 }
 
 // 매치 상세 정보 가져오기
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getMatchDetails(matchId: string): Promise<any | null> {
   try {
     const response = await fetch("/api/riot/matches/details", {
@@ -87,6 +88,7 @@ export async function getMatchDetails(matchId: string): Promise<any | null> {
 
 // 게임 성과 분석
 export async function analyzeGamePerformance(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   matchData: any,
   playerPuuid: string,
   playerTier: string
@@ -118,8 +120,7 @@ export async function analyzeGamePerformance(
 
 // 플레이어 최근 5판 분석
 export async function analyzePlayerRecent(
-  player: Player,
-  region: string = "kr"
+  player: Player
 ): Promise<GamePerformance[]> {
   try {
     const matchIds = await getRecentMatchIds(player.id, 5);

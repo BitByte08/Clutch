@@ -16,7 +16,6 @@ export default function PlayerSearch() {
   const [gamePerformances, setGamePerformances] = useState<GamePerformance[]>([]);
   const [performanceLoading, setPerformanceLoading] = useState(false);
   const [expandedGame, setExpandedGame] = useState<number | null>(null);
-  const [adjustedRating, setAdjustedRating] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const performanceRef = useRef<HTMLDivElement>(null);
 
@@ -49,7 +48,7 @@ export default function PlayerSearch() {
         }
 
         // 게임 분석하여 조정된 레이팅 계산
-        const performances = await analyzePlayerRecent(player, savedPlayer.region);
+        const performances = await analyzePlayerRecent(player);
         if (performances.length > 0) {
           const avgPerformance = performances.reduce((sum, p) => sum + p.performanceScore, 0) / performances.length;
           player.adjustedRating = player.rating * 0.7 + avgPerformance * 0.3;
@@ -109,7 +108,7 @@ export default function PlayerSearch() {
       }
 
       // 게임 분석하여 조정된 레이팅 계산
-      const performances = await analyzePlayerRecent(player, region);
+      const performances = await analyzePlayerRecent(player);
       if (performances.length > 0) {
         const avgPerformance = performances.reduce((sum, p) => sum + p.performanceScore, 0) / performances.length;
         player.adjustedRating = player.rating * 0.7 + avgPerformance * 0.3;
@@ -125,7 +124,6 @@ export default function PlayerSearch() {
       setError("");
       setSelectedPlayer(player);
       setGamePerformances(performances);
-      setAdjustedRating(player.adjustedRating);
       
       // 최근 게임 성과 섹션으로 스크롤
       setTimeout(() => {
@@ -140,17 +138,8 @@ export default function PlayerSearch() {
 
   const loadGamePerformance = async (player: Player) => {
     setPerformanceLoading(true);
-    const performances = await analyzePlayerRecent(player, region);
+    const performances = await analyzePlayerRecent(player);
     setGamePerformances(performances);
-    
-    // 조정된 레이팅 계산: 티어 레이팅 70% + 최근 성과 평균 30%
-    if (performances.length > 0) {
-      const avgPerformance = performances.reduce((sum, p) => sum + p.performanceScore, 0) / performances.length;
-      const adjusted = player.rating * 0.7 + avgPerformance * 0.3;
-      setAdjustedRating(adjusted);
-    } else {
-      setAdjustedRating(null);
-    }
     
     setPerformanceLoading(false);
   };
@@ -190,7 +179,7 @@ export default function PlayerSearch() {
         const baseRating = tierPoints[newTier] + rankPoints[p.rank] + p.lp / 100;
         const newRating = Math.min(100, Math.max(0, baseRating));
         // 조정 레이팅도 함께 업데이트 (언랭이 티어 변경하면 adjustedRating도 설정)
-        return { ...p, tier: newTier, rating: newRating, adjustedRating: p.adjustedRating ?? newRating };
+        return { ...p, tier: newTier, rating: newRating, adjustedRating: newRating };
       }
       return p;
     });
@@ -218,7 +207,7 @@ export default function PlayerSearch() {
         const baseRating = tierPoints[p.tier] + rankPoints[newRank] + p.lp / 100;
         const newRating = Math.min(100, Math.max(0, baseRating));
         // 조정 레이팅도 함께 업데이트
-        return { ...p, rank: newRank, rating: newRating, adjustedRating: p.adjustedRating ?? newRating };
+        return { ...p, rank: newRank, rating: newRating, adjustedRating: newRating };
       }
       return p;
     });
@@ -652,8 +641,8 @@ export default function PlayerSearch() {
                           <p>딜: {(gamePerformances[expandedGame].damageDealt / 1000).toFixed(1)}k</p>
                           {gamePerformances[expandedGame].position === "SUPPORT" && (
                             <>
-                              <p>와드: {gamePerformances[expandedGame].scoreBreakdown.enemyStats?.wards || 0}</p>
-                              <p>시야: {gamePerformances[expandedGame].scoreBreakdown.enemyStats?.vision || 0}</p>
+                              <p>와드: {gamePerformances[expandedGame].scoreBreakdown.supportStats?.wards ?? 0}</p>
+                              <p>시야: {gamePerformances[expandedGame].scoreBreakdown.supportStats?.vision ?? 0}</p>
                             </>
                           )}
                         </div>
