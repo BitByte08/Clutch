@@ -1,0 +1,23 @@
+# Clutch - League of Legends Team Builder
+# https://clutch.bitworkspace.kr
+
+# Allow all crawlers by default
+User-agent: *
+Allow: /
+
+# Respect crawl delays for politeness
+Crawl-delay: 1
+Request-rate: 1/1
+
+# Block bad bots
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+# Sitemap location
+Sitemap: https://clutch.bitworkspace.kr/sitemap.xml

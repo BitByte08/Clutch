@@ -18,7 +18,23 @@ export const metadata: Metadata = {
 		default: "Clutch - 내전 팀 구성기",
 		template: "%s - Clutch",
 	},
-	description: "리그 오브 레전드 내전을 위한 팀 구성 도구",
+	description: "리그 오브 레전드 내전을 위한 팀 구성 도구. 플레이어 성과 분석 및 밸런스 좋은 팀 자동 구성",
+	keywords: ["롤", "리그 오브 레전드", "팀 구성", "내전", "게임 분석"],
+	robots: {
+		index: true,
+		follow: true,
+		nocache: false,
+	},
+	openGraph: {
+		title: "Clutch - 내전 팀 구성기",
+		description: "리그 오브 레전드 내전을 위한 팀 구성 도구",
+		url: "https://clutch.bitworkspace.kr",
+		type: "website",
+		locale: "ko_KR",
+	},
+	alternates: {
+		canonical: "https://clutch.bitworkspace.kr",
+	},
 };
 
 export default function RootLayout({
