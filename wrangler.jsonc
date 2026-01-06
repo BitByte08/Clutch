@@ -48,16 +48,6 @@
 	 * Secrets (stored in Cloudflare, not in config)
 	 * Add via: wrangler secret put RIOT_API_KEY
 	 */
-	"env": {
-		"production": {
-			"routes": [
-				{ "pattern": "clutch.*", "zone_name": "your-domain.com" }
-			]
-		},
-		"development": {
-			"vars": {
-				"NEXTJS_ENV": "development"
-			}
-		}
-	}
+	"route": "/*",
+	"zone_id": ""
 }

@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "LoL Team Builder",
-	description: "라이엇 API를 사용한 리그 오브 레전드 팀 구성 웹",
+	title: "Clutch",
+	description: "League of Legends 내전 팀 구성기",
 };
 
 export default function RootLayout({
