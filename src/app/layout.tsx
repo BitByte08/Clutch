@@ -47,6 +47,7 @@ export default function RootLayout({
 			<head>
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
+				<meta name="google-site-verification" content="Kfe9KFkihJVcT4bVxBUvzdPOQClS9GIrKTybJsId4Iw" />
 			</head>
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
 				<div className="min-h-screen bg-gray-100">
