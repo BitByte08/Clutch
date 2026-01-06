@@ -1,18 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { loadPlayers } from "@/lib/storage";
 import { findOptimalTeams } from "@/lib/teamBuilder";
-import { Team } from "@/types";
+import { Player, Team } from "@/types";
 
 export default function TeamBuilder() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamSize, setTeamSize] = useState<2 | 3 | 4 | 5>(5);
   const [numberOfTeams, setNumberOfTeams] = useState(2);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [captainSelections, setCaptainSelections] = useState<string[]>([]);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    setPlayers(loadPlayers());
+  }, []);
+
+  useEffect(() => {
+    // 팀 개수가 바뀌면 캡틴 선택 배열 길이를 맞춤
+    setCaptainSelections((prev) =>
+      Array.from({ length: numberOfTeams }, (_, idx) => prev[idx] ?? "")
+    );
+  }, [numberOfTeams]);
 
   const handleBuildTeams = () => {
     const currentPlayers = loadPlayers();
+    setPlayers(currentPlayers);
 
     if (currentPlayers.length < teamSize * numberOfTeams) {
       setError(
@@ -22,11 +36,13 @@ export default function TeamBuilder() {
     }
 
     try {
+      const captainIds = captainSelections.some((id) => id) ? captainSelections : undefined;
       const newTeams = findOptimalTeams(
         currentPlayers,
         teamSize,
         numberOfTeams,
-        50
+        50,
+        captainIds
       );
       setTeams(newTeams);
       setError("");
@@ -75,6 +91,42 @@ export default function TeamBuilder() {
               <option value="5">5팀</option>
             </select>
           </div>
+        </div>
+
+        {/* 팀 대표 선택 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          {Array.from({ length: numberOfTeams }).map((_, idx) => {
+            const alreadyChosen = captainSelections
+              .map((id, i) => (i === idx ? undefined : id))
+              .filter((id): id is string => Boolean(id));
+            const availablePlayers = players.filter(
+              (p) => !alreadyChosen.includes(p.id)
+            );
+
+            return (
+              <div key={`captain-${idx}`}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  팀 {idx + 1} 대표 (선택 시 고정 배정)
+                </label>
+                <select
+                  value={captainSelections[idx] ?? ""}
+                  onChange={(e) => {
+                    const next = [...captainSelections];
+                    next[idx] = e.target.value;
+                    setCaptainSelections(next);
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                >
+                  <option value="">자동 배정</option>
+                  {availablePlayers.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}#{p.tag} · {p.mainPosition || "포지션 미정"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            );
+          })}
         </div>
 
         {error && (
@@ -134,6 +186,11 @@ export default function TeamBuilder() {
                               <p className="font-bold text-gray-900">
                                 {pIndex + 1}. {player.name}#{player.tag}
                               </p>
+                              {team.captainId === player.id && (
+                                <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-500 text-white">
+                                  대표
+                                </span>
+                              )}
                               {assignedPosition && (
                                 <span className={`px-2 py-0.5 rounded text-xs font-bold ${
                                   isPreferred 

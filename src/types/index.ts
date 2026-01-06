@@ -69,6 +69,7 @@ export interface Team {
   avgRating: number;
   createdAt: string;
   type: "2v2" | "3v3" | "4v4" | "5v5" | "tournament";
+  captainId?: string; // 지정된 팀 대표 (없으면 자동 배정)
   positionAssignments?: { [playerId: string]: string }; // 플레이어별 포지션 배정
 }
 

@@ -51,7 +51,8 @@ function assignPositions(players: Player[], teamSize: number): { [playerId: stri
 export function buildBalancedTeams(
   players: Player[],
   teamSize: 2 | 3 | 4 | 5,
-  numberOfTeams: number = 2
+  numberOfTeams: number = 2,
+  captainIds?: Array<string | null | undefined>
 ): Team[] {
   if (players.length < teamSize * numberOfTeams) {
     throw new Error(
@@ -66,24 +67,80 @@ export function buildBalancedTeams(
     return ratingB - ratingA;
   });
 
+  // 캡틴 목록 준비 (중복 제거, 최대 팀 수만큼 사용)
+  const playerMap = new Map(sortedPlayers.map((p) => [p.id, p]));
+  const uniqueCaptains: Player[] = [];
+  const seenCaptainIds = new Set<string>();
+  (captainIds ?? []).forEach((id) => {
+    if (!id) return;
+    if (seenCaptainIds.has(id)) return;
+    const player = playerMap.get(id);
+    if (!player) return;
+    seenCaptainIds.add(id);
+    if (uniqueCaptains.length < numberOfTeams) {
+      uniqueCaptains.push(player);
+    }
+  });
+
+  // 필요한 플레이어만 선택 (캡틴 우선 포함 후 상위 레이팅으로 채움)
+  const capacity = teamSize * numberOfTeams;
+  const selectedPlayers: Player[] = [...uniqueCaptains];
+  for (const p of sortedPlayers) {
+    if (selectedPlayers.length >= capacity) break;
+    if (seenCaptainIds.has(p.id)) continue;
+    selectedPlayers.push(p);
+  }
+
+  if (selectedPlayers.length < capacity) {
+    throw new Error(
+      `Not enough players. Need at least ${capacity} players to honor captain choices.`
+    );
+  }
+
   // 팀 초기화
   const teams: Player[][] = Array.from({ length: numberOfTeams }, () => []);
 
-  // 필요한 플레이어만 선택
-  const selectedPlayers = sortedPlayers.slice(0, teamSize * numberOfTeams);
+  // 캡틴을 우선 배정 (index 기준으로 매칭)
+  const captainOrder: Array<Player | undefined> = Array.from({ length: numberOfTeams }, (_, idx) => uniqueCaptains[idx]);
+  const captainIdSet = new Set<string>(uniqueCaptains.map((c) => c.id));
+  captainOrder.forEach((captain, idx) => {
+    if (captain) {
+      teams[idx].push(captain);
+    }
+  });
+
+  // 남은 플레이어 풀 (캡틴 제거)
+  const remainingPlayers = selectedPlayers.filter((p) => !captainIdSet.has(p.id));
 
   // 뱀 방식 드래프트 (Snake Draft)
   let currentTeam = 0;
   let direction = 1; // 1: 정방향, -1: 역방향
 
-  selectedPlayers.forEach((player, index) => {
+  let picksMade = 0;
+  remainingPlayers.forEach((player) => {
+    // 현재 팀이 가득 찼으면 다음 가능한 팀으로 이동
+    let safety = 0;
+    while (teams[currentTeam].length >= teamSize && safety < numberOfTeams) {
+      currentTeam += direction;
+      safety += 1;
+      if (currentTeam >= numberOfTeams || currentTeam < 0) {
+        direction *= -1;
+        currentTeam += direction;
+      }
+    }
+
     teams[currentTeam].push(player);
-    
-    // 다음 팀으로 이동
-    if ((index + 1) % numberOfTeams === 0) {
-      // 방향 전환
+    picksMade += 1;
+
+    // 다음 팀으로 이동 (스네이크 드래프트 유지)
+    if (picksMade % numberOfTeams === 0) {
       direction *= -1;
     } else {
+      currentTeam += direction;
+    }
+
+    if (currentTeam >= numberOfTeams || currentTeam < 0) {
+      direction *= -1;
       currentTeam += direction;
     }
   });
@@ -101,6 +158,7 @@ export function buildBalancedTeams(
       avgRating,
       createdAt: new Date().toISOString(),
       type: `${teamSize}v${teamSize}` as "2v2" | "3v3" | "4v4" | "5v5",
+      captainId: captainOrder[index]?.id,
       positionAssignments: assignPositions(teamPlayers, teamSize),
     };
   });
@@ -127,14 +185,15 @@ export function findOptimalTeams(
   players: Player[],
   teamSize: 2 | 3 | 4 | 5,
   numberOfTeams: number = 2,
-  iterations: number = 100
+  iterations: number = 100,
+  captainIds?: Array<string | null | undefined>
 ): Team[] {
-  let bestTeams = buildBalancedTeams(players, teamSize, numberOfTeams);
+  let bestTeams = buildBalancedTeams(players, teamSize, numberOfTeams, captainIds);
   let bestScore = calculateBalanceScore(bestTeams);
 
   for (let i = 0; i < iterations; i++) {
     const shuffled = [...players].sort(() => Math.random() - 0.5);
-    const teams = buildBalancedTeams(shuffled, teamSize, numberOfTeams);
+    const teams = buildBalancedTeams(shuffled, teamSize, numberOfTeams, captainIds);
     const score = calculateBalanceScore(teams);
 
     if (score < bestScore) {
