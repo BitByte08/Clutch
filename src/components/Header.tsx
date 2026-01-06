@@ -5,8 +5,7 @@ import { useSelectedLayoutSegment } from "next/navigation";
 
 export default function Header() {
 	const segment = useSelectedLayoutSegment();
-
-	const isPlayers = segment === "players";
+	const isPlayers = segment === "players" || segment === null;
 	const isTeams = segment === "teams";
 
 	return (
