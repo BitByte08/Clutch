@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Header from "@/components/Header";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,8 +14,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "Clutch",
-	description: "League of Legends 내전 팀 구성기",
+	title: {
+		default: "Clutch - 내전 팀 구성기",
+		template: "%s - Clutch",
+	},
+	description: "리그 오브 레전드 내전을 위한 팀 구성 도구",
 };
 
 export default function RootLayout({
@@ -26,8 +30,21 @@ export default function RootLayout({
 		<html lang="ko">
 			<head>
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
+				<meta name="viewport" content="width=device-width, initial-scale=1" />
 			</head>
-			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
+			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+				<div className="min-h-screen bg-gray-100">
+					<div className="max-w-6xl mx-auto px-4 py-8">
+						{/* 헤더 (네비게이션 포함) */}
+						<Header />
+
+						{/* 콘텐츠 */}
+						<div className="bg-white rounded-lg shadow p-8">
+							{children}
+						</div>
+					</div>
+				</div>
+			</body>
 		</html>
 	);
 }
