@@ -48,6 +48,8 @@
 	 * Secrets (stored in Cloudflare, not in config)
 	 * Add via: wrangler secret put RIOT_API_KEY
 	 */
-	"route": "/*",
-	"zone_id": ""
+	"route": {
+		"pattern": "clutch.bitworkspace.kr/*",
+		"zone_id": "44eddcf0763656735237e9b66e4b8466"
+	}
 }
