@@ -5,10 +5,6 @@
 User-agent: *
 Allow: /
 
-# Respect crawl delays for politeness
-Crawl-delay: 1
-Request-rate: 1/1
-
 # Block bad bots
 User-agent: MJ12bot
 Disallow: /
