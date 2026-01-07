@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans_KR } from "next/font/google";
 import Header from "@/components/Header";
 import "./globals.css";
 
@@ -11,6 +11,12 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
 	variable: "--font-geist-mono",
 	subsets: ["latin"],
+});
+
+const notoSansKr = Noto_Sans_KR({
+	variable: "--font-noto-sans-kr",
+	subsets: ["latin", "korean"],
+	weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -49,7 +55,7 @@ export default function RootLayout({
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<meta name="google-site-verification" content="Kfe9KFkihJVcT4bVxBUvzdPOQClS9GIrKTybJsId4Iw" />
 			</head>
-			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+			<body className={`${geistSans.variable} ${geistMono.variable} ${notoSansKr.variable} antialiased`}>
 				<div className="min-h-screen bg-gray-100">
 					<div className="max-w-6xl mx-auto px-4 py-8">
 						{/* 헤더 (네비게이션 포함) */}

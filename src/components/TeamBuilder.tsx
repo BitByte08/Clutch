@@ -61,7 +61,7 @@ export default function TeamBuilder() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
               팀 사이즈
             </label>
             <select
@@ -77,7 +77,7 @@ export default function TeamBuilder() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
               팀 개수
             </label>
             <select
@@ -105,7 +105,7 @@ export default function TeamBuilder() {
 
             return (
               <div key={`captain-${idx}`}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-900 mb-2">
                   팀 {idx + 1} 대표 (선택 시 고정 배정)
                 </label>
                 <select
@@ -202,11 +202,11 @@ export default function TeamBuilder() {
                               )}
                             </div>
                             {player.mostChampions && player.mostChampions.length > 0 && (
-                              <p className="text-xs text-gray-500 mt-0.5">
+                              <p className="text-xs text-gray-700 mt-0.5">
                                 모스트: {player.mostChampions.slice(0, 3).map(c => c.championName).join(', ')}
                               </p>
                             )}
-                            <p className="text-sm font-semibold text-gray-700 mt-1">
+                            <p className="text-sm font-semibold text-gray-900 mt-1">
                               {player.tier} {player.rank} · {player.lp}LP
                             </p>
                             {player.adjustedRating !== undefined && (
@@ -215,7 +215,7 @@ export default function TeamBuilder() {
                               </p>
                             )}
                             {player.mainPosition && (
-                              <p className="text-xs text-gray-600 mt-1">
+                              <p className="text-xs text-gray-800 mt-1">
                                 선호: {player.mainPosition}{player.subPosition ? ` / ${player.subPosition}` : ''}
                               </p>
                             )}
@@ -226,7 +226,7 @@ export default function TeamBuilder() {
                                 <span className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold block">
                                   {player.adjustedRating.toFixed(1)}
                                 </span>
-                                <span className="text-xs text-gray-600 mt-1 block font-semibold">
+                                <span className="text-xs text-gray-800 mt-1 block font-semibold">
                                   (티어: {player.rating.toFixed(1)})
                                 </span>
                               </>
