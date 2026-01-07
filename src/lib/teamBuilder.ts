@@ -110,7 +110,16 @@ export function buildBalancedTeams(
   });
 
   // 남은 플레이어 풀 (캡틴 제거)
-  const remainingPlayers = selectedPlayers.filter((p) => !captainIdSet.has(p.id));
+  let remainingPlayers = selectedPlayers.filter((p) => !captainIdSet.has(p.id));
+
+  // 드래프트 순서를 입력 players 배열의 순서에 맞춰 정렬해 랜덤성 부여
+  // findOptimalTeams 에서 players 를 매 반복마다 섞어 전달하므로, 여기서 그 순서를 반영
+  const orderIndex = new Map(players.map((p, i) => [p.id, i]));
+  remainingPlayers = remainingPlayers.sort((a, b) => {
+    const ai = orderIndex.get(a.id) ?? 0;
+    const bi = orderIndex.get(b.id) ?? 0;
+    return ai - bi;
+  });
 
   // 뱀 방식 드래프트 (Snake Draft)
   let currentTeam = 0;

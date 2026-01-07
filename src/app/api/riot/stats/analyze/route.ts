@@ -27,6 +27,18 @@ const positionScoring: Record<string, Record<string, (stats: any, enemyLaner: an
       const ratio = gold / Math.max(1, enemyGold);
       return Math.min(100, ratio * 50);
     },
+    toughnessScore: (stats, enemy, gameDuration) => {
+      const taken = stats.totalDamageTaken || 0;
+      const enemyTaken = enemy ? (enemy.totalDamageTaken || 1) : Math.max(1, taken * 0.9);
+      const mitigated = stats.damageSelfMitigated || 0;
+      const enemyMitigated = enemy ? (enemy.damageSelfMitigated || 1) : Math.max(1, mitigated * 0.9);
+      const takenRatio = taken / Math.max(1, enemyTaken); // 1.0 -> 동등
+      const mitigatedRatio = mitigated / Math.max(1, enemyMitigated); // 1.0 -> 동등
+      const takenScore = Math.min(100, takenRatio * 50); // 50 = 동등
+      const mitigatedScore = Math.min(100, mitigatedRatio * 50);
+      // 생존/경감 비중을 조금 더 줌
+      return Math.min(100, takenScore * 0.4 + mitigatedScore * 0.6);
+    },
   },
   JUNGLE: {
     csScore: (stats, _enemy, gameDuration) => {
@@ -52,6 +64,17 @@ const positionScoring: Record<string, Record<string, (stats: any, enemyLaner: an
       const enemyDamage = enemy ? (enemy.totalDamageDealtToChampions || enemy.totalDamageDealtToChamps || 1) : damage * 0.9;
       const ratio = damage / Math.max(1, enemyDamage);
       return Math.min(100, ratio * 50);
+    },
+    toughnessScore: (stats, enemy, gameDuration) => {
+      const taken = stats.totalDamageTaken || 0;
+      const enemyTaken = enemy ? (enemy.totalDamageTaken || 1) : Math.max(1, taken * 0.9);
+      const mitigated = stats.damageSelfMitigated || 0;
+      const enemyMitigated = enemy ? (enemy.damageSelfMitigated || 1) : Math.max(1, mitigated * 0.9);
+      const takenRatio = taken / Math.max(1, enemyTaken);
+      const mitigatedRatio = mitigated / Math.max(1, enemyMitigated);
+      const takenScore = Math.min(100, takenRatio * 50);
+      const mitigatedScore = Math.min(100, mitigatedRatio * 50);
+      return Math.min(100, takenScore * 0.3 + mitigatedScore * 0.7);
     },
   },
   MID: {
@@ -124,6 +147,17 @@ const positionScoring: Record<string, Record<string, (stats: any, enemyLaner: an
       const enemyDamage = _enemy ? (_enemy.totalDamageDealtToChampions || _enemy.totalDamageDealtToChamps || 1) : damage * 0.9;
       const ratio = damage / Math.max(1, enemyDamage);
       return Math.min(100, ratio * 50);
+    },
+    toughnessScore: (stats, enemy, gameDuration) => {
+      const taken = stats.totalDamageTaken || 0;
+      const enemyTaken = enemy ? (enemy.totalDamageTaken || 1) : Math.max(1, taken * 0.9);
+      const mitigated = stats.damageSelfMitigated || 0;
+      const enemyMitigated = enemy ? (enemy.damageSelfMitigated || 1) : Math.max(1, mitigated * 0.9);
+      const takenRatio = taken / Math.max(1, enemyTaken);
+      const mitigatedRatio = mitigated / Math.max(1, enemyMitigated);
+      const takenScore = Math.min(100, takenRatio * 50);
+      const mitigatedScore = Math.min(100, mitigatedRatio * 50);
+      return Math.min(100, takenScore * 0.3 + mitigatedScore * 0.7);
     },
   },
 };
@@ -230,6 +264,7 @@ function calculateGamePerformance(
         cs: enemyCs,
         gold: enemyGold,
         damage: enemyDamage,
+        damageTaken: enemyLaner.totalDamageTaken || 0,
         kills: enemyLaner.kills || 0,
         deaths: enemyLaner.deaths || 0,
         assists: enemyLaner.assists || 0,

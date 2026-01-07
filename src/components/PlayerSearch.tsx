@@ -176,15 +176,25 @@ export default function PlayerSearch() {
           CHALLENGER: 97,
         };
         const rankPoints: Record<number, number> = { 1: 2.5, 2: 1.75, 3: 1.0, 4: 0.25 };
-        const baseRating = tierPoints[newTier] + rankPoints[p.rank] + p.lp / 100;
+        const numericRank = typeof p.rank === 'number' ? p.rank : 4;
+        const rp = rankPoints[numericRank] ?? rankPoints[4];
+        const lpFactor = typeof p.lp === 'number' ? p.lp / 100 : 0;
+        const baseRating = tierPoints[newTier] + rp + lpFactor;
         const newRating = Math.min(100, Math.max(0, baseRating));
         // 조정 레이팅도 함께 업데이트 (언랭이 티어 변경하면 adjustedRating도 설정)
-        return { ...p, tier: newTier, rating: newRating, adjustedRating: newRating };
+        const updated = { ...p, tier: newTier, rating: newRating, adjustedRating: newRating };
+        return updated;
       }
       return p;
     });
     savePlayers(updatedPlayers);
     setPlayers(updatedPlayers);
+
+    // 선택된 플레이어 화면도 즉시 반영
+    const justUpdated = updatedPlayers.find(p => p.id === playerId) || null;
+    if (justUpdated && selectedPlayer && selectedPlayer.id === playerId) {
+      setSelectedPlayer(justUpdated);
+    }
   };
 
   const handleUpdatePlayerRank = (playerId: string, newRank: number) => {
@@ -204,15 +214,23 @@ export default function PlayerSearch() {
           CHALLENGER: 97,
         };
         const rankPoints: Record<number, number> = { 1: 2.5, 2: 1.75, 3: 1.0, 4: 0.25 };
-        const baseRating = tierPoints[p.tier] + rankPoints[newRank] + p.lp / 100;
+        const lpFactor = typeof p.lp === 'number' ? p.lp / 100 : 0;
+        const baseRating = tierPoints[p.tier] + (rankPoints[newRank] ?? rankPoints[4]) + lpFactor;
         const newRating = Math.min(100, Math.max(0, baseRating));
         // 조정 레이팅도 함께 업데이트
-        return { ...p, rank: newRank, rating: newRating, adjustedRating: newRating };
+        const updated = { ...p, rank: newRank, rating: newRating, adjustedRating: newRating };
+        return updated;
       }
       return p;
     });
     savePlayers(updatedPlayers);
     setPlayers(updatedPlayers);
+
+    // 선택된 플레이어 화면도 즉시 반영
+    const justUpdated = updatedPlayers.find(p => p.id === playerId) || null;
+    if (justUpdated && selectedPlayer && selectedPlayer.id === playerId) {
+      setSelectedPlayer(justUpdated);
+    }
   };
 
   const handleUpdatePosition = (playerId: string, positionType: 'main' | 'sub', position: string) => {
@@ -591,6 +609,7 @@ export default function PlayerSearch() {
                             <p>K/D/A: {perf.kills}/{perf.deaths}/{perf.assists}</p>
                             <p>CS: {perf.cs}</p>
                             <p>딜: {(perf.damageDealt / 1000).toFixed(1)}k</p>
+                            <p>받은 피해: {(perf.damageTaken / 1000).toFixed(1)}k</p>
                           </div>
                         </div>
                         <div className="bg-gray-200 rounded-full h-2 mb-2">
@@ -639,6 +658,7 @@ export default function PlayerSearch() {
                           <p>CS: {gamePerformances[expandedGame].cs}</p>
                           <p>골드: {gamePerformances[expandedGame].gold.toLocaleString()}</p>
                           <p>딜: {(gamePerformances[expandedGame].damageDealt / 1000).toFixed(1)}k</p>
+                          <p>받은 피해: {(gamePerformances[expandedGame].damageTaken / 1000).toFixed(1)}k</p>
                           {gamePerformances[expandedGame].position === "SUPPORT" && (
                             <>
                               <p>와드: {gamePerformances[expandedGame].scoreBreakdown.supportStats?.wards ?? 0}</p>
@@ -652,6 +672,9 @@ export default function PlayerSearch() {
                           <p>CS: {gamePerformances[expandedGame].scoreBreakdown.enemyStats.cs}</p>
                           <p>골드: {gamePerformances[expandedGame].scoreBreakdown.enemyStats.gold.toLocaleString()}</p>
                           <p>딜: {(gamePerformances[expandedGame].scoreBreakdown.enemyStats.damage / 1000).toFixed(1)}k</p>
+                          {typeof gamePerformances[expandedGame].scoreBreakdown.enemyStats.damageTaken === 'number' && (
+                            <p>받은 피해: {(gamePerformances[expandedGame].scoreBreakdown.enemyStats.damageTaken / 1000).toFixed(1)}k</p>
+                          )}
                           {gamePerformances[expandedGame].position === "SUPPORT" && (
                             <>
                               <p>와드: {gamePerformances[expandedGame].scoreBreakdown.enemyStats.wards || 0}</p>
@@ -676,6 +699,7 @@ export default function PlayerSearch() {
                           key === 'objectiveScore' ? '오브젝트 점수' :
                           key === 'wardScore' ? '와드 점수' :
                           key === 'visionScore' ? '시야 점수' :
+                          key === 'toughnessScore' ? '탱킹 점수' :
                           key;
                         return (
                           <div key={key} className="bg-white p-3 rounded border border-gray-300">

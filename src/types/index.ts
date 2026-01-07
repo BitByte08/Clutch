@@ -51,6 +51,7 @@ export interface GamePerformance {
       cs: number;
       gold: number;
       damage: number;
+      damageTaken?: number;
       kills: number;
       deaths: number;
       assists: number;

@@ -297,21 +297,25 @@ export async function POST(request: NextRequest) {
 
     // 언랭크 플레이어 처리 (랭크 게임을 하지 않은 경우)
     let tier = "IRON";
-    let rank = "IV";
+    let rankStr = "IV";
     let lp = 0;
     let rating = 0;
     let isUnranked = false;
 
     if (soloRankData) {
       tier = soloRankData.tier;
-      rank = soloRankData.rank;
+      rankStr = soloRankData.rank;
       lp = soloRankData.leaguePoints;
       rating = calculatePlayerRating(soloRankData);
-      console.log("Ranked player - tier:", tier, "rank:", rank, "lp:", lp);
+      console.log("Ranked player - tier:", tier, "rank:", rankStr, "lp:", lp);
     } else {
       isUnranked = true;
       console.log("Unranked player detected - setting isUnranked to true");
     }
+
+    // 로마 숫자 랭크를 숫자(1~4)로 변환
+    const romanToNumber: Record<string, number> = { I: 1, II: 2, III: 3, IV: 4 };
+    const rankNum = romanToNumber[rankStr] ?? 4;
 
     // 플레이어 객체 구성
     const player: Player = {
@@ -319,7 +323,7 @@ export async function POST(request: NextRequest) {
       name: effectiveName,
       tag: tagLine,
       tier: tier,
-      rank: parseInt(rank) || 4,
+      rank: rankNum,
       lp: lp,
       rating: rating,
       adjustedRating: rating, // 언랭도 초기 adjustedRating 설정
