@@ -39,6 +39,12 @@ export default function Header() {
 				>
 					팀 구성
 				</Link>
+				<Link
+					href="https://github.com/BitByte08/Clutch"
+					className={"px-6 py-3 rounded-lg font-semibold transition bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"}
+				>
+					GitHub
+				</Link>
 			</nav>
 		</header>
 	);

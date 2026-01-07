@@ -105,7 +105,7 @@ src/
 ```json
 {
   "id": "puuid...",
-  "name": "Faker",
+  "name": "Hide on bush",
   "tag": "KR1",
   "tier": "DIAMOND",
   "rank": 1,
